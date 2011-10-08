@@ -6,4 +6,5 @@ from django.conf.urls.defaults import *
 
 urlpatterns = patterns('',
 	(r"^$", "planadate.views.frontpage"),
+	(r"^activities/$", "planadate.views.activities"),
 )

@@ -39,6 +39,9 @@ def frontpage(request):
     """
     return render_to_response('front.html')
     
+def activities(request):
+    act = models.Activity.all()
+    return render_to_response('activities.html',{'activities':act})
 
 ### Helper functions ###
 

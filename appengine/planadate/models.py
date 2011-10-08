@@ -25,10 +25,39 @@ from django.core.urlresolvers import reverse
 
 ### Models ###
 
-class Activity(db.Model):
-	pass
-	
-class Place(db.Model):
-	pass
+class TimeDeltaProperty(db.Property):
+    """ In seconds """
+    def get_value_for_datastore(self, model_instance):
+        td = super(TimeDeltaProperty, self).get_value_for_datastore(model_instance)
+        if td is not None:
+            return (td.seconds + td.days * 86400)
+        return None
+    
+    def make_value_from_datastore(self, value):
+        if value is not None:
+            return datetime.timedelta(seconds=value)
 
+
+class Activity(db.Model):
+    created      = db.DateTimeProperty(auto_now_add=True)
+    tags         = db.StringListProperty()
+    name         = db.StringProperty(required=True)
+    price        = db.IntegerProperty()
+    duration_min = TimeDeltaProperty()
+    duration_max = TimeDeltaProperty()
+    
+    
+class Place(db.Model):
+    location   = db.GeoPtProperty()
+    tags       = db.StringListProperty()
+    uris       = db.StringListProperty()
+    activities = db.ListProperty(item_type=db.Key)
+    
+class BusinessHours(db.Model):
+    day   = db.IntegerProperty(choices=set([0,1,2,3,4,5,6]))
+    open  = db.TimeProperty()
+    close = db.TimeProperty()
+    date  = db.DateProperty()
+    place = db.ReferenceProperty(Place, collection_name='business_hours')
+    
 ### Helper Functions ###
