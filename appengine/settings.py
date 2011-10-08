@@ -4,7 +4,7 @@ import os
 
 APPEND_SLASH = True
 DEBUG = True
-INSTALLED_APPS = ('cardbox',)
+INSTALLED_APPS = ('planadate',)
 ROOT_PATH = os.path.dirname(__file__)
 ROOT_URLCONF = 'urls'
 MIDDLEWARE_CLASSES = (
