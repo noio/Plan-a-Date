@@ -37,25 +37,8 @@ import models
 def frontpage(request):
     """ Renders the frontpage/redirects to mobile front page
     """
-    return respond(request,'front.html')
+    return render_to_response('front.html')
     
 
 ### Helper functions ###
 
-
-def respond(request, template, params=None):
-    """ Helper to render a response, passing standard stuff to the response.
-        
-        Args:
-         request: The request object.
-         template: The template name; '.html' is appended automatically.
-         params: A dict giving the template parameters; modified in-place.
-    """
-    if params is None:
-        params = {}     
-    params['request'] = request
-    # params['user'] = request.user
-    # params['is_admin'] = request.user_is_admin
-    params['media_url'] = django_settings.MEDIA_URL
-    full_path = request.get_full_path().encode('utf-8')
-    return render_to_response(template, params)

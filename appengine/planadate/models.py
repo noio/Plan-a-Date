@@ -25,4 +25,10 @@ from django.core.urlresolvers import reverse
 
 ### Models ###
 
+class Activity(db.Model):
+	pass
+	
+class Place(db.Model):
+	pass
+
 ### Helper Functions ###
