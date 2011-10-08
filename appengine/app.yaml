@@ -1,4 +1,4 @@
-application: planadate
+application: plan-a-date
 version: 1
 runtime: python
 api_version: 1

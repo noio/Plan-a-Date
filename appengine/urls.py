@@ -7,4 +7,8 @@ from django.conf.urls.defaults import *
 urlpatterns = patterns('',
 	(r"^$", "planadate.views.frontpage"),
 	(r"^activities/$", "planadate.views.activities"),
+        (r"^plan/$", "planadate.views.make_plan"),
+
+        # Url to put some-test data in the DB
+        (r"^add-data/$", "planadate.views.add_sample_data"),
 )

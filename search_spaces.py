@@ -1,5 +1,5 @@
 import json
-import urllib
+import urllib, pickle
 
 API_KEY = "AIzaSyCDVMO3-PEsnU22lgvjp0ltnqMwW4R8TE4"
 LOCATION = "Amsterdam"

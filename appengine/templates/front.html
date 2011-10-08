@@ -1,1 +1,11 @@
-<h1>Enter user info<h1>
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Enter user info</h1>
+    <form action="{% url planadate.views.make_plan %}" method="post">
+        Geslacht:   <input type="radio" name="sex" value="male">Man
+                    <input type="radio" name="sex" value="female" checked>Vrouw
+                    <input type="submit" value="Plan date"/>
+    </form>
+    
+{% endblock content %}
