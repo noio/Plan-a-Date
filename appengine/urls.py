@@ -11,4 +11,7 @@ urlpatterns = patterns('',
 
         # Url to put some-test data in the DB
         (r"^add-data/$", "planadate.views.add_sample_data"),
+
+	(r'^add_place/$', "planadate.views.add_place")
+
 )

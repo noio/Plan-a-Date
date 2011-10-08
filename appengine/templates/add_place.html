@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form action="{% url planadate.views.add_place %}">
+<input name="search_term" type="text" />
+
+<ul>
+{% for result in results %}
+  <li>{{result.name}}, {{result.vicinity}}</li>
+{% endfor %}
+</ul>
+
+</form>
+
+{% endblock content %}
