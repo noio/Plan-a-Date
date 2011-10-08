@@ -1,5 +1,6 @@
 import json
 import urllib
+import pickle
 
 API_KEY = "AIzaSyCDVMO3-PEsnU22lgvjp0ltnqMwW4R8TE4"
 LOCATION = "Amsterdam"
@@ -9,16 +10,20 @@ RADIUS = 10000
 
 running = True
 
-choice_file = open("choices.pkl", 'rb')
-choices_so_far = pickle.load(choice_file)
+#choices_so_far = []
+
+choice_file = open("choices.txt", 'r')
+choices_so_far = eval(choice_file.read())
+choice_file.close()
 print choices_so_far
 
-# Pickle dictionary using protocol 0.
-pickle.dump(data1, output)
 
 if __name__ == "__main__":
 	while(running):
-	
+		
+		print "Tot nu toe gekozen:"
+		for i in range(0,len(choices_so_far)):
+			print "%d - %s" % (i, choices_so_far[i][0])
 		# TODO:Find out lat/lng of current location:
 		#params = urllib.urlencode({'adress': LOCATION, 'sensor': 'false'})#, 'key': API_KEY})
 		#f = urllib.urlopen("http://maps.googleapis.com/maps/api/geocode/json?%s" % params)
@@ -35,12 +40,16 @@ if __name__ == "__main__":
 		for (i, result) in enumerate(results['results']):
 			print "%d %s, %s" % (i+1,result['name'], result['vicinity'])
 
-		choice = int(raw_input("Choose venue or 0 to try again (-1 to quit)")) + 1
-
-		if(choice < 0):
+		choice = int(raw_input("Choose venue or 0 to try again (-1 to quit)"))-1
+		
+		if(choice < -1):
 			running = false
-		elif(choice > 0):
-			print choice
+		elif(choice > -1):
+			choices_so_far.append((results['results'][choice]["name"], results['results'][choice]["reference"]))
+			choice_file = open("choices.txt", 'w')
+			choice_file.write(str(choices_so_far))
+			choice_file.close()
+			choices_so_far
 	
 	
 	#https://maps.googleapis.com/maps/api/place/search/json?location=52.3702157,4.8951679&radius=10000&name=test&key=AIzaSyCDVMO3-PEsnU22lgvjp0ltnqMwW4R8TE4
