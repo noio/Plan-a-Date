@@ -54,5 +54,11 @@ def activities(request):
     act = models.Activity.all()
     return render_to_response('activities.html',{'activities':act})
 
+@admin_required
+def add_place(request):
+	if 'search_term' in request.POST:
+		pass
+	else:
+		return render_to_response('add_place.html')
 ### Helper functions ###
 
