@@ -11,6 +11,8 @@ urlpatterns = patterns('',
     (r"^activities/$", "planadate.views.activities"),
     (r"^activities/add/$", "planadate.views.activity_add"),
     (r"^activities/(\d+)/$", "planadate.views.activity_edit"),
+    (r"^activities/get-all/$", "planadate.views.get_activities"),
+
     
     (r'^places/$', "planadate.views.places"),
     (r'^places/add/$', "planadate.views.place_add"),

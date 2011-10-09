@@ -3,6 +3,7 @@
 # Python imports
 import logging
 import urllib
+import datetime
 
 # AppEngine imports
 from google.appengine.ext import db
@@ -103,13 +104,18 @@ def place_add(request):
         ref = request.POST['picked_place']
         params = urllib.urlencode({'reference': ref, 'key': API_KEY, 'sensor': 'false'})        
         url = "https://maps.googleapis.com/maps/api/place/details/json?%s" % params
-        result = simplejson.loads(urlfetch.fetch(url).content)["result"]
+        results = simplejson.loads(urlfetch.fetch(url).content)["result"]
         place = models.Place(name=results["name"], 
                              address=results["formatted_address"],
                              location=db.GeoPt(results["geometry"]["location"]["lat"], 
                              results["geometry"]["location"]["lng"]), 
-                             uris=[url], 
-                             tags=results["types"])
+                             uris=[url])
+        tag_ids = []
+        for tag in results["types"]:
+            t = models.Tag(key_name=tag)
+            t.put()
+            tag_ids.append(t.key())
+        place.tags = tag_ids
         place.put()
     
     return render_to_response('place-add.html', response_params)
@@ -123,19 +129,27 @@ def activity_add(request):
 
     # If the form is submitted    
     if request.method == "POST":
-        form = ActivityForm(request.POST)
+        #tags = ['moet nog']
+        
+        activity = Activity(name=request.POST['name'],price=int(request.POST['price']),duration_min=datetime.timedelta(seconds=int(request.POST['duration_min'])),duration_max=datetime.timedelta(seconds=int(request.POST['duration_max'])))
+        activity.put()
+#        except:
+#            print 'Can\'t make activity'
 
-        if form.is_valid():
-            activity = form.save(commit=False)            
-            activity.duration_min = datetime.timedelta(seconds=int(activity.duration_min))
-            activity.duration_max = datetime.timedelta(seconds=int(activity.duration_max))
-            activity.put()
-        else:
-            print 'KAPOT'
-
+        
     return render_to_response('activity-add.html', response_params)
 
 @admin_required
 def activity_edit(request):
     pass
 
+
+def get_activities(request):
+    activities = models.Activity.all()
+    activity_list = []
+
+    for activity in activities:
+        activity_list.append(activity.name)
+
+    json = simplejson.dumps(activity_list)
+    return HttpResponse(json, mimetype='application/javascript')

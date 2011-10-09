@@ -67,8 +67,10 @@ class BusinessHours(db.Model):
     date  = db.DateProperty()
     place = db.ReferenceProperty(Place, collection_name='business_hours')
 
-class Tag(db.model):
+class Tag(db.Model):
     created = db.DateTimeProperty(auto_now_add=True)
-    name = db.StringProperty()
+
+    def __init__(self, key_name, **kwargs):
+       db.Model.__init__(self, key_name=key_name, **kwargs)
     
 ### Helper Functions ###
