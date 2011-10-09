@@ -110,7 +110,7 @@ def activities(request):
 
 def places(request):
     places = models.Place.all()
-    tags = [tag.key().name() for tag in places]
+    #tags = [tag.key().name() for tag in places]
     return render_to_response('places.html',{'places':places})
 
 @admin_required
@@ -162,8 +162,7 @@ def place_add(request):
         # Check for new tags, put them in tag-model and add them to applied_tags
         for i in range(1,4):
             if 'newtag%d' % i in request.POST and request.POST['newtag%d-value' % i] != '':
-                t = models.Tag(key_name=request.POST['newtag%d-value' % i])
-                t.put()
+                models.Tag.get_or_insert(key_name=request.POST['newtag%d-value' % i])
                 applied_tags.append(request.POST['newtag%d-value' % i])
                             
         applied_tags = [db.Key.from_path('Tag',tagname) for tagname in applied_tags]
@@ -173,8 +172,8 @@ def place_add(request):
         # Take care of activities:
         applied_activities = []
 
-        for activity in current_activity:
-            if "activity-%s" % actvity in request.POST:
+        for activity in current_activities:
+            if "activity-%s" % activity in request.POST:
                 applied_activities.append(tag)    
         
         applied_activities = [db.Key.from_path('Activity',activity) for activity in applied_activities]
