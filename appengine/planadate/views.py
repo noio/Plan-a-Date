@@ -3,7 +3,7 @@
 # Python imports
 import logging
 import urllib
-import datetime
+from datetime import datetime, time, date, timedelta
 
 # AppEngine imports
 from google.appengine.ext import db
@@ -11,8 +11,6 @@ from google.appengine.ext.db import Key
 from google.appengine.api import users
 from google.appengine.api import memcache
 from google.appengine.api import urlfetch
-
-
 
 # Django imports
 from django import forms
@@ -30,7 +28,6 @@ from models import Activity, ActivityForm
 #from django.core.exceptions import ValidationError
 
 # Library imports
-import datetime
 
 # Local Imports
 import models
@@ -68,8 +65,9 @@ def plan(request):
     response_params['base_template'] = 'ajax.html' if request.is_ajax() else 'base.html' 
     
     # Extract form
-    start_time = datetime.datetime.strptime(request.POST['start_time'], '%H:%M').time()
-    end_time = datetime.datetime.strptime(request.POST['end_time'], '%H:%M').time()
+    day = date.today()
+    start_time = datetime.combine(day, datetime.strptime(request.POST['start_time'], '%H:%M').time())
+    end_time = datetime.combine(day, datetime.strptime(request.POST['end_time'], '%H:%M').time())
     max_price = int(request.POST['max_price'])
     # TODO: Some smart stuff to select a template
     selected_template = models.DateTemplate.all().get()
@@ -77,8 +75,10 @@ def plan(request):
     if selected_template is None:
         selected_template = models.DateTemplate(name = "Example Template")
         selected_template.put()
-        models.DateTemplateBlock(template=d, moment = datetime.time(hour=15), tags_exclude=["eten"]).put()
-        models.DateTemplateBlock(template=d, moment = datetime.time(hour=19), tags_include=["eten"]).put()
+        b1 = models.DateTemplateBlock(template=selected_template, start_min = time(hour=14), start_max = time(hour=15), tags_exclude=[db.Key.from_path('Tag',"eten")])
+        b2 = models.DateTemplateBlock(template=selected_template, start_min = time(hour=18), start_max = time(hour=19), tags_include=[db.Key.from_path('Tag',"eten")])
+        b1.put()
+        b2.put()
     
     def plan_rest(from_time, blocks, money_left):
         """ Recursive function to make a plan
@@ -87,26 +87,32 @@ def plan(request):
         if not blocks:
             return []
         if len(blocks) > 1:
-            until_time = (blocks[1].start_min, blocks[1].start_max)
+            until_time = (datetime.combine(day, blocks[1].start_min),
+                          datetime.combine(day, blocks[1].start_max))
         else:
             until_time = (end_time,end_time)
         plans = []
-        for option in blocks[0].satisfy(money_left, from_time, until_time):
-            start_min = max(from_time[0], option.start_min)
-            start_max = min(from_time[1], option.start_max)
+        for option in blocks[0].satisfy(money_left, from_time, until_time, day):
+            logging.info(option)
+            start_min = max(from_time[0], datetime.combine(day,blocks[0].start_min))
+            start_max = min(from_time[1], datetime.combine(day,blocks[0].start_max))
             new_from_time = (start_min + option.duration_min, start_max + option.duration_max)
+            logging.info(new_from_time)
             blocks = blocks[1:]
             rest_plans = plan_rest(new_from_time, blocks, money_left - option.price)
             plans.extend([option] + rp for rp in rest_plans if len(rp) == len(blocks))
         return plans
     
-    plans = plan_rest((start_time, start_time), selected_template.blocks.fetch(100), max_price)
+    blocks = sorted(selected_template.blocks.fetch(100), key=lambda b: datetime.combine(day,b.start_min))
+    plans = plan_rest((start_time, start_time), blocks, max_price)
     response_params['plans'] = plans
     return render_to_response('plan.html',response_params)
     
 def activities(request):
     act = models.Activity.all()
     return render_to_response('activities.html',{'activities':act})
+    
+# TODO: Json view voor activities hieraan toevoegen
 
 def places(request):
     places = models.Place.all()
@@ -131,7 +137,6 @@ def place_add(request):
     
     #Searching
     if 'search' in request.POST:
-        
         params = urllib.urlencode({'radius': SEARCH_RADIUS_PLACES, 'name': request.POST['search_term'], 'key': API_KEY, 'sensor': 'false'})
         url = "https://maps.googleapis.com/maps/api/place/search/json?location=%s&%s" % (str(LOCATION['lat']) + ',' + str(LOCATION['lng']), params)
         f = urlfetch.fetch(url)
@@ -213,8 +218,8 @@ def activities(request):
         name = request.POST['name']
         price = int(request.POST['price'])
 
-        duration_min = datetime.timedelta(seconds=floatToSeconds(float(request.POST['duration_min'])))
-        duration_max = datetime.timedelta(seconds=floatToSeconds(float(request.POST['duration_max'])))
+        duration_min = timedelta(seconds=floatToSeconds(float(request.POST['duration_min'])))
+        duration_max = timedelta(seconds=floatToSeconds(float(request.POST['duration_max'])))
 
         # If we got an activity id from the request, we do an update instead of an add
         if 'activity-id' in request.POST:
@@ -247,3 +252,7 @@ def get_activities_json(request):
 def floatToSeconds(floatTime):
     seconds = int(floatTime * 3600)
     return seconds
+    
+def time_add(t1, td):
+    day = date.today()
+    return datetime.combine(day, t1) + td
