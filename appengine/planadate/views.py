@@ -105,7 +105,7 @@ def place_add(request):
         url = "https://maps.googleapis.com/maps/api/place/details/json?%s" % params
         result = simplejson.loads(urlfetch.fetch(url).content)["result"]
         place = models.Place(name=results["name"], 
-                             address=results["formatted_address"]
+                             address=results["formatted_address"],
                              location=db.GeoPt(results["geometry"]["location"]["lat"], 
                              results["geometry"]["location"]["lng"]), 
                              uris=[url], 
