@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form action="{% url planadate.views.place_add %}" method="POST">
+<input name="search_term" type="text" />
+
+<ul>
+{% for result in results %}
+  <li>
+		<input type='radio' name='picked_place' id='option-{{result.name}}' value='{{result.reference}}' /> <label for='option-{{result.name}}'>{{result.name}}, {{result.vicinity}}</label></li>
+{% endfor %}
+</ul>
+
+<input type='submit' value='OK'>
+</form>
+
+<h3>Places so far</h3>
+<ul>
+{% for place in places %}
+  <li>{{place.name}}</li>
+{% endfor %}
+</ul>
+{% endblock content %}

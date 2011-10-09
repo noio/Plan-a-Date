@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form action="{% url planadate.views.activity_add %}" method="POST">
+    {{activity_form}}
+    <input type='submit' value='OK'/>
+</form>-->
+
+<!--<form action="{% url planadate.views.activity_add %}" method="POST">
+
+Name:<input type="text" name="name"/>
+Tags<input type="text" name="tags"/>
+Price<input type="text" name="price"/>
+Duration min (sec)<input type="text" name="duration_min"/>
+Duration max (sec)<input type="text" name="duration_max"/>
+
+<input type='submit' value='OK'/>
+</form>-->
+
+<h3>Activities so far</h3>
+<ul>
+{% for activity in activities %}
+  <li>{{activity.name}}</li>
+{% endfor %}
+</ul>
+{% endblock content %}
