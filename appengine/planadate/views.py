@@ -62,14 +62,6 @@ def activities(request):
     act = models.Activity.all()
     return render_to_response('activities.html',{'activities':act})
 
-@admin_required
-def add_place(request):
-<<<<<<< HEAD
-	if 'search_term' in request.POST:
-		pass
-	else:
-		return render_to_response('add_place.html')
-
 def make_plan(request):
     response = RequestContext(request, {})
     
@@ -89,7 +81,8 @@ def add_sample_data(request):
     a.put()
     return render_to_response('front.html',{})
 
-=======
+@admin_required
+def add_place(request):
     render_params = {}
     render_params['places'] = models.Place.all()
     
@@ -110,6 +103,5 @@ def add_sample_data(request):
         place.put()
     
     return render_to_response('add_place.html', render_params)
->>>>>>> Functionaliteit om places toe te voegen
 ### Helper functions ###
 
