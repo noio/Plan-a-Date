@@ -63,7 +63,7 @@ def activities(request):
     return render_to_response('activities.html',{'activities':act})
 
 def make_plan(request):
-    response = RequestContext(request, {})
+    response_params = {}
     
     # Get the activities, and then we should make some smart choices here :)
     if request.POST['sex'] == 'male':
@@ -71,29 +71,27 @@ def make_plan(request):
     else:
         activity = models.Activity.all()[1]
     
-    response['activities'] = [activity]
+    response_params['activities'] = [activity]
 
-    return render_to_response('plan.html',response)
-
-def add_sample_data(request):
-    # Function to add some non-sense data to the DB
-    a = Activity(name='Shoppen')
-    a.put()
-    return render_to_response('front.html',{})
+    return render_to_response('plan.html',response_params)
 
 @admin_required
-def add_place(request):
-    render_params = {}
-    render_params['places'] = models.Place.all()
+def place_view(request):
+    pass
+
+@admin_required
+def place_add(request):
+    response_params = {}
+    response_params['places'] = models.Place.all()
     
     if 'search_term' in request.POST and request.POST['search_term'] != '':
         params = urllib.urlencode({'radius': SEARCH_RADIUS_PLACES, 'name': request.POST['search_term'], 'key': API_KEY, 'sensor': 'false'})
         url = "https://maps.googleapis.com/maps/api/place/search/json?location=%s&%s" % (str(LOCATION['lat']) + ',' + str(LOCATION['lng']), params)
         f = urlfetch.fetch(url)
         results = simplejson.loads(f.content)
-        render_params['results'] = results['results']
+        response_params['results'] = results['results']
 
-    else:
+    elif 'picked_place' in request.POST:
         ref = request.POST['picked_place']
         params = urllib.urlencode({'reference': ref, 'key': API_KEY, 'sensor': 'false'})        
         url = "https://maps.googleapis.com/maps/api/place/details/json?%s" % params
@@ -102,6 +100,18 @@ def add_place(request):
         place = models.Place(name=results["result"]["name"], uris=[ref], tags=results["result"]["types"])
         place.put()
     
-    return render_to_response('add_place.html', render_params)
+    return render_to_response('add_place.html', response_params)
 ### Helper functions ###
 
+@admin_required
+def activity_add(request):
+    response_params = {}
+    return render_to_response('add-activity.html', response_params)
+
+@admin_required
+def activity_edit(request):
+    pass
+
+@admin_required
+def activity_view(reqeust):
+    pass
