@@ -111,7 +111,7 @@ def activities(request):
 
 def places(request):
     places = models.Place.all()
-    return render_to_response('activities.html',{'places':places})
+    return render_to_response('places.html',{'places':places})
 
 @admin_required
 def place_edit(request):
@@ -121,41 +121,51 @@ def place_edit(request):
 def place_add(request):
     response_params = {}
     response_params['places'] = models.Place.all()
-    response_params['current_tags'] = get_current_tags()
-    response_params['current_activities'] = get_current_activities() 
+    current_tags = get_current_tags()
+    response_params['current_tags'] = current_tags
     
-    print get_current_tags()
+    current_activities = get_current_activities()
+    response_params['current_activities'] = current_activities
     
-    if 'search_term' in request.POST and request.POST['search_term'] != '':
+    #Searching
+    if 'search' in request.POST:
+        
         params = urllib.urlencode({'radius': SEARCH_RADIUS_PLACES, 'name': request.POST['search_term'], 'key': API_KEY, 'sensor': 'false'})
         url = "https://maps.googleapis.com/maps/api/place/search/json?location=%s&%s" % (str(LOCATION['lat']) + ',' + str(LOCATION['lng']), params)
         f = urlfetch.fetch(url)
         results = simplejson.loads(f.content)
         response_params['results'] = results['results']
-
-    elif 'picked_place' in request.POST:
+    # adding place
+    elif 'add' in request.POST and 'picked_place' in request.POST:
         ref = request.POST['picked_place']
         params = urllib.urlencode({'reference': ref, 'key': API_KEY, 'sensor': 'false'})        
         url = "https://maps.googleapis.com/maps/api/place/details/json?%s" % params
         results = simplejson.loads(urlfetch.fetch(url).content)["result"]
-        tag_ids = []
-        for tag in results["types"]:
-            # Check if the tag already exists
-            t = models.Tag.get_by_key_name(tag)
-            # If not add it
-            if not t:
-                t = models.Tag(key_name=tag)
-                t.put()
-            tag_ids.append(t.key())
         
+        applied_tags = []
+        
+        # Which old tags are applied?
+        for tag in current_tags:
+            if "tag-%s" % tag in request.POST:
+                applied_tags.append(tag)
+        
+        # Check for new tags, put them in tag-model and add them to applied_tags
+        for i in range(1,4):
+            if 'newtag%d' % i in request.POST and request.POST['newtag%d-value' % i] != '':
+                t = models.Tag(key_name=request.POST['newtag%d-value' % i])
+                t.put()
+                applied_tags.append(request.POST['newtag%d-value' % i])        
         
         place = models.Place(name=results["name"], 
                              address=results["formatted_address"],
                              location=db.GeoPt(results["geometry"]["location"]["lat"], 
                              results["geometry"]["location"]["lng"]), 
                              uris=[url])
+        
+
+        applied_tags = [db.Key.from_path('Tag',tagname) for tagname in applied_tags]
                              
-        place.tags = tag_ids
+        place.tags = applied_tags
         place.put()
     
     return render_to_response('place-add.html', response_params)
@@ -217,15 +227,17 @@ def get_current_activities():
 
     json = simplejson.dumps(activity_list)
     return HttpResponse(json, mimetype='application/javascript')
-    
+
+
+def floatToSeconds(floatTime):
+    seconds = int(floatTime * 3600)
+    return seconds
+
 def get_current_tags():
     tags = models.Tag.all()
     tag_list = []
 
     for tag in tags:
-        tag_list.append(tag.key())
-    return tag_list
+        tag_list.append(tag.key().name())    
 
-def floatToSeconds(floatTime):
-    seconds = int(floatTime * 3600)
-    return seconds
+    return tag_list
