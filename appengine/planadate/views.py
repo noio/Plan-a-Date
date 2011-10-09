@@ -173,8 +173,8 @@ def place_add(request):
         # Take care of activities:
         applied_activities = []
 
-        for activity in current_activity:
-            if "activity-%s" % actvity in request.POST:
+        for activity in current_activities:
+            if "activity-%s" % activity in request.POST:
                 applied_activities.append(tag)    
         
         applied_activities = [db.Key.from_path('Activity',activity) for activity in applied_activities]
@@ -202,13 +202,8 @@ def activities(request):
 
         tag_ids = []
         for tag in tags:
-            if tag.strip() != '':
-                # Check if the tag already exists
-                t = models.Tag.get_by_key_name(tag)
-                # If not add it
-                if not t:
-                    t = models.Tag(key_name=tag)
-                    t.put()
+            if tag.strip() != '':                
+                t = models.Tag.get_or_insert(key_name=tag)
                 tag_ids.append(t.key())
 
         name = request.POST['name']
@@ -221,6 +216,12 @@ def activities(request):
         if 'activity-id' in request.POST:
             logging.info('edit an existing activity')
             activity = Activity.get_by_id(int(request.POST['activity-id']))
+            activity.name = name
+            activity.price = price
+            activity.duration_min = duration_min
+            activity.duration_max = duration_max
+            activity.tags = tag_ids
+            activity.put()
         else:
             activity = Activity(name=name,price=price,duration_min=duration_min,duration_max=duration_max,tags=tag_ids)
             activity.put()

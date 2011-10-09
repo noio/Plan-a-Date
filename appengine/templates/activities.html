@@ -9,10 +9,10 @@
     <table>
         <tr>
         <td>Activiteit</td>
-        <td>Prijs</td>
+        <td>Prijs (centen, int)</td>
         <td>Tags</td>
-        <td>Minimum duration</td>
-        <td>Maximum duration</td>
+        <td>Minimum duration (uren, float)</td>
+        <td>Maximum duration (uren, float)</td>
         </tr>
     {% for activity in activities %}
         <tr>
@@ -23,8 +23,8 @@
                 {{tag.name}},
           {% endfor %}
         </td>
-         <td>{{activity.duration_min}}</td>
-         <td>{{activity.duration_max}}</td>
+         <td>{{activity.duration_min.seconds|secondsToHours}}</td>
+         <td>{{activity.duration_max.seconds|secondsToHours}}</td>
          <td><a href="{% url planadate.views.activity_edit activity.key.id %}">Edit</a></td>
         </tr>
     {% endfor %}
