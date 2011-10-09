@@ -71,6 +71,7 @@ def places(request):
 
 def make_plan(request):
     response_params = {}
+    response_params['base_template'] = 'ajax.html' if request.is_ajax() else 'base.html' 
     
     # Get the activities, and then we should make some smart choices here :)
     if request.POST['sex'] == 'male':
@@ -102,9 +103,12 @@ def place_add(request):
         ref = request.POST['picked_place']
         params = urllib.urlencode({'reference': ref, 'key': API_KEY, 'sensor': 'false'})        
         url = "https://maps.googleapis.com/maps/api/place/details/json?%s" % params
-        f = urlfetch.fetch(url)
-        results = simplejson.loads(f.content)
-        place = models.Place(name=results["result"]["name"], location=db.GeoPt(results["result"]["geometry"]["location"]["lat"], results["result"]["geometry"]["location"]["lng"]), uris=[ref], tags=results["result"]["types"])
+        results = simplejson.loads(urlfetch.fetch(url).content)
+        place = models.Place(name=results["result"]["name"], 
+                             location=db.GeoPt(results["result"]["geometry"]["location"]["lat"], 
+                             results["result"]["geometry"]["location"]["lng"]), 
+                             uris=[url], 
+                             tags=results["result"]["types"])
         place.put()
     
     return render_to_response('place-add.html', response_params)
