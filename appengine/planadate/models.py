@@ -54,7 +54,7 @@ class ActivityForm(djangoforms.ModelForm):
     
 class Place(db.Model):
     location   = db.GeoPtProperty()
-    address    = db.PostalAddress()
+    address    = db.PostalAddressProperty()
     tags       = db.StringListProperty()
     name       = db.StringProperty(required=True)
     uris       = db.StringListProperty()

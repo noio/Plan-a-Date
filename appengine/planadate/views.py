@@ -103,12 +103,13 @@ def place_add(request):
         ref = request.POST['picked_place']
         params = urllib.urlencode({'reference': ref, 'key': API_KEY, 'sensor': 'false'})        
         url = "https://maps.googleapis.com/maps/api/place/details/json?%s" % params
-        results = simplejson.loads(urlfetch.fetch(url).content)
-        place = models.Place(name=results["result"]["name"], 
-                             location=db.GeoPt(results["result"]["geometry"]["location"]["lat"], 
-                             results["result"]["geometry"]["location"]["lng"]), 
+        result = simplejson.loads(urlfetch.fetch(url).content)["result"]
+        place = models.Place(name=results["name"], 
+                             address=results["formatted_address"]
+                             location=db.GeoPt(results["geometry"]["location"]["lat"], 
+                             results["geometry"]["location"]["lng"]), 
                              uris=[url], 
-                             tags=results["result"]["types"])
+                             tags=results["types"])
         place.put()
     
     return render_to_response('place-add.html', response_params)
