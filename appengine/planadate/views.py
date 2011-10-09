@@ -38,7 +38,7 @@ import models
 ### Constants ###
 SEARCH_RADIUS_PLACES = 10000
 API_KEY = "AIzaSyCDVMO3-PEsnU22lgvjp0ltnqMwW4R8TE4"
-LOCATION = {"lat" : 52.37021570, "lng" : 4.895167900000001}
+LOCATION = {"lat" : 52.37021570, "lng" : 4.895167900000001} # TODO: Lelijk
 
 
 ### Decorators for Request Handlers ###
@@ -60,7 +60,50 @@ def admin_required(func):
 def frontpage(request):
     """ Renders the frontpage/redirects to mobile front page
     """
+    
     return render_to_response('front.html')
+    
+
+def plan(request):
+    response_params = {}
+    response_params['base_template'] = 'ajax.html' if request.is_ajax() else 'base.html' 
+    
+    # Extract form
+    start_time = datetime.datetime.strptime(request.POST['start_time'], '%H:%M').time()
+    end_time = datetime.datetime.strptime(request.POST['end_time'], '%H:%M').time()
+    max_price = int(request.POST['max_price'])
+    # TODO: Some smart stuff to select a template
+    selected_template = models.DateTemplate.all().get()
+    # (deleteme) create a new template if there is none
+    if selected_template is None:
+        selected_template = models.DateTemplate(name = "Example Template")
+        selected_template.put()
+        models.DateTemplateBlock(template=d, moment = datetime.time(hour=15), tags_exclude=["eten"]).put()
+        models.DateTemplateBlock(template=d, moment = datetime.time(hour=19), tags_include=["eten"]).put()
+    
+    def plan_rest(from_time, blocks, money_left):
+        """ Recursive function to make a plan
+        """
+        # We're done, return an empty list
+        if not blocks:
+            return []
+        if len(blocks) > 1:
+            until_time = (blocks[1].start_min, blocks[1].start_max)
+        else:
+            until_time = (end_time,end_time)
+        plans = []
+        for option in blocks[0].satisfy(money_left, from_time, until_time):
+            start_min = max(from_time[0], option.start_min)
+            start_max = min(from_time[1], option.start_max)
+            new_from_time = (start_min + option.duration_min, start_max + option.duration_max)
+            blocks = blocks[1:]
+            rest_plans = plan_rest(new_from_time, blocks, money_left - option.price)
+            plans.extend([option] + rp for rp in rest_plans if len(rp) == len(blocks))
+        return plans
+    
+    plans = plan_rest((start_time, start_time), selected_template.blocks.fetch(100), max_price)
+    response_params['plans'] = plans
+    return render_to_response('plan.html',response_params)
     
 def activities(request):
     act = models.Activity.all()
@@ -69,20 +112,6 @@ def activities(request):
 def places(request):
     places = models.Place.all()
     return render_to_response('activities.html',{'places':places})
-
-def make_plan(request):
-    response_params = {}
-    response_params['base_template'] = 'ajax.html' if request.is_ajax() else 'base.html' 
-    
-    # Get the activities, and then we should make some smart choices here :)
-    if request.POST['sex'] == 'male':
-        activity = models.Activity.all()[0]
-    else:
-        activity = models.Activity.all()[1]
-    
-    response_params['activities'] = [activity]
-
-    return render_to_response('plan.html',response_params)
 
 @admin_required
 def place_edit(request):

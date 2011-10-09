@@ -2,11 +2,11 @@
 
 {% block content %}
     <h1>Het plan!</h1>
-
+    
     <ul>
-    {% for activity in activities %}
-        <li>{{activity.name}}</li>
-    {% endfor %}
+      {% for plan in plans %}
+        <li>{{plan}}</li>
+      {% endfor %}
     </ul>
 
 {% endblock content %}

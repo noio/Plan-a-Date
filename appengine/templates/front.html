@@ -2,10 +2,11 @@
 
 {% block content %}
     <h1>Enter user info</h1>
-    <form action="{% url planadate.views.make_plan %}" method="post">
-        Geslacht:   <input type="radio" name="sex" value="male">Man
-                    <input type="radio" name="sex" value="female" checked>Vrouw
-                    <input type="submit" value="Plan date"/>
+    <form action="{% url planadate.views.plan %}" method="post">
+        <input type="text" name="start_time" value="14:30"/>
+        <input type="text" name="end_time" value="22:30"/>
+        <input type="text" name="max_price" value="1500"/>
+        <input type="submit" value="Plan date"/>
     </form>
     
 {% endblock content %}
