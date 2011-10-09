@@ -1,13 +1,13 @@
-{% extends "base.html" %}
+{% extends "admin.html" %}
 
 {% block content %}
 <h3>List of places</h3>
 <p>You've added the following places:</p>
 <table>
 	<caption>Current places</caption>
-	<tr><th>Name</th><th>Adress</th><th>Activities</th><th>tags</th></tr>
+	<tr><th>Name</th><th>Adress</th><th>Activities</th><th>tags</th><th></th></tr>
 {% for place in places %}
-  <tr><td>{{place.name}}<td>{{place.address}}</td><td>todo</td><td>{{place.tags}}</td></tr>
+  <tr><td>{{place.name}}<td>{{place.address}}</td><td>todo</td><td>{% for tag in place.tags %}{{tag.name}}, {% endfor %}</td><td><a href="#">delete</a></td></tr>
 {% endfor %}
 </table>
 {% endblock content %}

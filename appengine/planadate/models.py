@@ -3,7 +3,8 @@
 # Python Imports
 import os
 import re
-import datetime
+import logging
+from datetime import datetime, date, time, timedelta
 
 # AppEngine Imports
 from google.appengine.ext import db
@@ -37,7 +38,7 @@ class TimeDeltaProperty(db.Property):
     
     def make_value_from_datastore(self, value):
         if value is not None:
-            return datetime.timedelta(seconds=value)
+            return timedelta(seconds=value)
 
 class DateTemplate(db.Model):
     """ Represents a date template, that has a 
@@ -48,31 +49,40 @@ class DateTemplate(db.Model):
 class DateTemplateBlock(db.Model):
     """ One block, that can be filled by an ActivityAtPlace
     """
-    template       = db.ReferenceProperty(DateTemplate, collection_name="blocks")
-    tags_include   = db.ListProperty(item_type=db.Key)
-    tags_exclude   = db.ListProperty(item_type=db.Key)
-    start_min      = db.TimeProperty()
-    start_max      = db.TimeProperty()
+    template       = db.ReferenceProperty(DateTemplate, collection_name="blocks",required=True)
+    tags_include   = db.ListProperty(item_type=db.Key,default=[])
+    tags_exclude   = db.ListProperty(item_type=db.Key,default=[])
+    start_min      = db.TimeProperty(required=True)
+    start_max      = db.TimeProperty(required=True)
     
-    def satisfy(self, max_price, (from_min, from_max), (until_min, until_max)):
+    def satisfy(self, max_price, (from_min, from_max), (until_min, until_max), day):
+        logging.info(max_price)
+        logging.info(from_max)
+        # Modify to given day
+        start_min = datetime.combine(day, self.start_min)
+        start_max = datetime.combine(day, self.start_max)
         # If the earliest we can start this block is later
         # than the latest we are allowed to, return no matches.
-        if start_min > self.start_max or start_max < self.start_min:
+        if from_min > start_max or from_max < start_min:
             return []
         # Filter for AaPs
         aaps = ActivityAtPlace.all()
-        aaps.filter('price <= ', max_price)
+        # Filter by price
+        aaps.filter('price <=', max_price)
         # Filter include tags
+        logging.info(list(aaps))
+        logging.info([tag.name() for tag in self.tags_include])
         for tag in self.tags_include:
             aaps.filter('tags = ', tag)
         # Filter duration
-        aaps.filter('duration < ', until_max - start_min)
-        aaps.filter('duration > ', until_min - start_max)
-        # Fetch
-        aaps = aaps.fetch()
+        logging.info(list(aaps))
+        start_min = max(from_min, start_min)
+        start_max = min(from_max, start_max)
+        aaps = (a for a in aaps if a.duration_min < until_max - start_min)
+        aaps = (a for a in aaps if a.duration_max > until_min - start_max)
         # Filter exclude tags
-        aaps = [aap for aap in aaps if not set(aap.tags) & set(self.tags_exclude)]
-        return aaps
+        aaps = (aap for aap in aaps if not set(aap.tags) & set(self.tags_exclude))
+        return list(aaps)
         
 
 class Activity(db.Model):
@@ -113,16 +123,17 @@ class ActivityAtPlace(db.Model):
     duration_max = TimeDeltaProperty()
     
     @classmethod
-    def new(activity, place):
+    def new(cls, activity, place):
         key_name = '%d-%d'%(activity.key().id(), place.key().id())
-        a = ActivityAtPlace(key_name=key_name)
+        a = cls(key_name=key_name)
         a.activity = activity
         a.place = place
         # Compute combined properties
-        a.tags = set(activity.tags + place.tags)
+        a.tags = list(set(activity.tags + place.tags))
         a.price = place.price or activity.price
         a.duration_min = activity.duration_min
         a.duration_max = activity.duration_max
+        return a
 
 
 class BusinessHours(db.Model):
@@ -137,4 +148,12 @@ class Tag(db.Model):
 
     def __init__(self, key_name, **kwargs):
        db.Model.__init__(self, key_name=key_name, **kwargs)
+
 ### Helper Functions ###
+
+def timedelta_to_seconds(td):
+    return td.days*86400 + td.seconds
+
+def time_sub(t1, t2):
+    td = date.today()
+    return datetime.combine(td, t1) - datetime.combine(td, t2)

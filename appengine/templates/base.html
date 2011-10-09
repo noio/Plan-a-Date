@@ -11,12 +11,14 @@
 
 <body>
     <div id="header">
+	{% block extra_header %}
+	{% endblock extra_header %}
     </div>
     <div class="container">
     {% block content %}
 
     Dit is de base template.
-
+    
     {% endblock content %}
     
     </div>
