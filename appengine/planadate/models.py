@@ -42,7 +42,7 @@ class TimeDeltaProperty(db.Property):
 
 class Activity(db.Model):
     created      = db.DateTimeProperty(auto_now_add=True)
-    tags         = db.StringListProperty()
+    tags         = db.ListProperty(item_type=db.Key)
     name         = db.StringProperty(required=True)
     price        = db.IntegerProperty()
     duration_min = TimeDeltaProperty()
@@ -55,7 +55,7 @@ class ActivityForm(djangoforms.ModelForm):
 class Place(db.Model):
     location   = db.GeoPtProperty()
     address    = db.PostalAddressProperty()
-    tags       = db.StringListProperty()
+    tags       = db.ListProperty(item_type=db.Key)
     name       = db.StringProperty(required=True)
     uris       = db.StringListProperty()
     activities = db.ListProperty(item_type=db.Key)
@@ -66,5 +66,9 @@ class BusinessHours(db.Model):
     closed = db.TimeProperty()
     date  = db.DateProperty()
     place = db.ReferenceProperty(Place, collection_name='business_hours')
+
+class Tag(db.model):
+    created = db.DateTimeProperty(auto_now_add=True)
+    name = db.StringProperty()
     
 ### Helper Functions ###

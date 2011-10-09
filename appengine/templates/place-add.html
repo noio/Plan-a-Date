@@ -3,8 +3,10 @@
 {% block content %}
 
 <form action="{% url planadate.views.place_add %}" method="POST">
+<h3>Search</h3>
 <input name="search_term" type="text" />
 
+<h3>Results</h3>
 <ul>
 {% for result in results %}
   <li>
@@ -12,7 +14,10 @@
 {% endfor %}
 </ul>
 
+Activities: <input type="text" name="activities" id="activity-input"/>
+
 <input type='submit' value='OK'>
+
 </form>
 
 <h3>Places so far</h3>
