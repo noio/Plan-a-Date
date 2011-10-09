@@ -110,6 +110,7 @@ def activities(request):
 
 def places(request):
     places = models.Place.all()
+    tags = [tag.key().name() for tag in places]
     return render_to_response('places.html',{'places':places})
 
 @admin_required
@@ -118,14 +119,15 @@ def place_edit(request):
 
 @admin_required
 def place_add(request):
+    current_activities = get_current_activities()
+    current_tags = get_current_tags()
+    
     response_params = {}
     response_params['places'] = models.Place.all()
-    current_tags = get_current_tags()
-
     response_params['current_tags'] = current_tags
-    
-    current_activities = get_current_activities()
     response_params['current_activities'] = current_activities
+    response_params['added'] = ""
+
     
     #Searching
     if 'search' in request.POST:
@@ -135,6 +137,7 @@ def place_add(request):
         f = urlfetch.fetch(url)
         results = simplejson.loads(f.content)
         response_params['results'] = results['results']
+    
     # adding place
     elif 'add' in request.POST and 'picked_place' in request.POST:
         ref = request.POST['picked_place']
@@ -142,31 +145,45 @@ def place_add(request):
         url = "https://maps.googleapis.com/maps/api/place/details/json?%s" % params
         results = simplejson.loads(urlfetch.fetch(url).content)["result"]
         
+        place = models.Place(name=results["name"], 
+                             address=results["formatted_address"],
+                             location=db.GeoPt(results["geometry"]["location"]["lat"], 
+                             results["geometry"]["location"]["lng"]), 
+                             uris=[url])                             
+                             
+        # Take care of tags..
         applied_tags = []
-        
+         
         # Which old tags are applied?
         for tag in current_tags:
             if "tag-%s" % tag in request.POST:
                 applied_tags.append(tag)
-        
+             
         # Check for new tags, put them in tag-model and add them to applied_tags
         for i in range(1,4):
             if 'newtag%d' % i in request.POST and request.POST['newtag%d-value' % i] != '':
                 t = models.Tag(key_name=request.POST['newtag%d-value' % i])
                 t.put()
-                applied_tags.append(request.POST['newtag%d-value' % i])        
-        
-        place = models.Place(name=results["name"], 
-                             address=results["formatted_address"],
-                             location=db.GeoPt(results["geometry"]["location"]["lat"], 
-                             results["geometry"]["location"]["lng"]), 
-                             uris=[url])
-        
-
+                applied_tags.append(request.POST['newtag%d-value' % i])
+                            
         applied_tags = [db.Key.from_path('Tag',tagname) for tagname in applied_tags]
-                             
         place.tags = applied_tags
+
+
+        # Take care of activities:
+        applied_activities = []
+
+        for activity in current_activity:
+            if "activity-%s" % actvity in request.POST:
+                applied_activities.append(tag)    
+        
+        applied_activities = [db.Key.from_path('Activity',activity) for activity in applied_activities]
+        place.activities = applied_activities
+        
+        # TODO: put activity in place-activity model
+        
         place.put()
+        response_params['added'] = "Succesfully added place: %s" % place.name
     
     return render_to_response('place-add.html', response_params)
 ### Helper functions ###

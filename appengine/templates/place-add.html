@@ -11,19 +11,23 @@
 
 <form action="{% url planadate.views.place_add %}" method="POST">
 <input type="hidden" name="add" value="true">
+<i>{{ added }}</i>
 <h3>Results</h3>
 <ul>
 {% for result in results %}
-  <li>
-		<input type='radio' name='picked_place' id='option-{{result.name}}' value='{{result.reference}}' /> <label for='option-{{result.name}}'>{{result.name}}, {{result.vicinity}}</label></li>
+  <li><input type='radio' name='picked_place' id='option-{{result.name}}' value='{{result.reference}}' /> <label for='option-{{result.name}}'>{{result.name}}, {{result.vicinity}}</label></li>
 {% endfor %}
 </ul>
 <h3>Meta-data</h3>
 <h4>Activities</h4>
 <p>
-{% for activity in current_activities %}
-<input type='checkbox' name='activities' value='{{activity}}'> {{ activity }}
+
+<ul>
+	{% for activity in current_activities %}
+	<li><input type='checkbox' id='activity-{{activity}}' name='activity-{{activity}}' value='1'> <label for='activity-{{activity}}'>{{ activity }}</label></li>
 {% endfor %}
+</ul>
+
 </p>
 
 <h4>Tags</h4>
