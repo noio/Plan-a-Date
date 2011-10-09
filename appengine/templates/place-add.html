@@ -13,10 +13,13 @@
 		<input type='radio' name='picked_place' id='option-{{result.name}}' value='{{result.reference}}' /> <label for='option-{{result.name}}'>{{result.name}}, {{result.vicinity}}</label></li>
 {% endfor %}
 </ul>
+<h3>Meta-data</h3>
+<h4>activities</h4>
+{% for activity in current_activities %}
+<input type='checkbox' name='activity' value='{{activity}}'> {{ activity }}
+{% endfor %}
 
-Activities: <input type="text" name="activities" id="activity-input"/>
-
-<input type='submit' value='OK'>
+<p><input type='submit' value='OK'></p>
 
 </form>
 
