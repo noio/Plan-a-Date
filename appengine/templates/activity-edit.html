@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load template_filters %}
+
+{% block content %}
+
+<h3>Activities so far</h3>
+<form action="{% url planadate.views.activities %}" method="POST">
+<table>
+    <tr>
+    <td>Activiteit</td>
+    <td>Prijs (centen, int)</td>
+    <td>Tags</td>
+    <td>Minimum duration (uren, float)</td>
+    <td>Maximum duration (uren, float)</td>
+    </tr>
+
+    <tr>
+    <td><input type="text" name="name" value="{{activity.name}}"/></td>
+    <td><input type="text" name="price" value="{{activity.price}}"/></td>
+    <td><input type="text" name="tags" value="{% for tag in activity.tags %}{{tag.name}},{% endfor %}"/></td>
+     <td><input type="text" name="duration_min" value="{{activity.duration_min.seconds|secondsToHours}}"/></td>
+     <td><input type="text" name="duration_max" value="{{activity.duration_max.seconds|secondsToHours}}"/></td>
+     <td><input type='submit' value='Save'></td>
+    </tr>
+</table>
+    <input type="hidden" value="{{activity.key.id}}" name="activity-id"/>
+</form>
+{% endblock content %}

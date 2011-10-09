@@ -5,7 +5,12 @@
 <form action="{% url planadate.views.place_add %}" method="POST">
 <h3>Search</h3>
 <input name="search_term" type="text" />
+<input type="hidden" name="search" value="true">
+<p><input type='submit' value='Search place'></p>
+</form>
 
+<form action="{% url planadate.views.place_add %}" method="POST">
+<input type="hidden" name="add" value="true">
 <h3>Results</h3>
 <ul>
 {% for result in results %}
@@ -14,19 +19,29 @@
 {% endfor %}
 </ul>
 <h3>Meta-data</h3>
-<h4>activities</h4>
+<h4>Activities</h4>
+<p>
 {% for activity in current_activities %}
-<input type='checkbox' name='activity' value='{{activity}}'> {{ activity }}
+<input type='checkbox' name='activities' value='{{activity}}'> {{ activity }}
 {% endfor %}
+</p>
 
-<p><input type='submit' value='OK'></p>
+<h4>Tags</h4>
+<p>
+	<ul>
+{% for tag in current_tags %}
+<li><input type='checkbox' id='tag-{{tag}}' name='tag-{{tag}}' value='1'><label for='{{ tag }}'> {{ tag }}</label></li>
+{% endfor %}
+<li><input type='checkbox' name='newtag1' value='1'><input type='text' name='newtag1-value'></li>
+<li><input type='checkbox' name='newtag2' value='1'><input type='text' name='newtag2-value'></li>
+<li><input type='checkbox' name='newtag3' value='1'><input type='text' name='newtag3-value'></li>
+</ul>
+</p>
+
+<p><input type='submit' value='Add place'></p>
 
 </form>
 
-<h3>Places so far</h3>
-<ul>
-{% for place in places %}
-  <li>{{place.name}}</li>
-{% endfor %}
-</ul>
+<a href="/places/">Show all places</a>
+
 {% endblock content %}
