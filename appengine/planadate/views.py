@@ -92,6 +92,10 @@ def place_edit(request):
 def place_add(request):
     response_params = {}
     response_params['places'] = models.Place.all()
+    response_params['current_tags'] = get_current_tags()
+    response_params['current_activities'] = get_current_activities() 
+    
+    print get_current_tags()
     
     if 'search_term' in request.POST and request.POST['search_term'] != '':
         params = urllib.urlencode({'radius': SEARCH_RADIUS_PLACES, 'name': request.POST['search_term'], 'key': API_KEY, 'sensor': 'false'})
@@ -105,16 +109,19 @@ def place_add(request):
         params = urllib.urlencode({'reference': ref, 'key': API_KEY, 'sensor': 'false'})        
         url = "https://maps.googleapis.com/maps/api/place/details/json?%s" % params
         results = simplejson.loads(urlfetch.fetch(url).content)["result"]
-        place = models.Place(name=results["name"], 
-                             address=results["formatted_address"],
-                             location=db.GeoPt(results["geometry"]["location"]["lat"], 
-                             results["geometry"]["location"]["lng"]), 
-                             uris=[url])
         tag_ids = []
         for tag in results["types"]:
             t = models.Tag(key_name=tag)
             t.put()
             tag_ids.append(t.key())
+        
+        
+        place = models.Place(name=results["name"], 
+                             address=results["formatted_address"],
+                             location=db.GeoPt(results["geometry"]["location"]["lat"], 
+                             results["geometry"]["location"]["lng"]), 
+                             uris=[url])
+                             
         place.tags = tag_ids
         place.put()
     
@@ -145,11 +152,25 @@ def activity_edit(request):
 
 
 def get_activities(request):
+    activity_list = get_current_activities()
+    json = simplejson.dumps(activity_list)
+    return HttpResponse(json, mimetype='application/javascript')
+    
+# Helper functions
+def get_current_activities():
     activities = models.Activity.all()
     activity_list = []
 
     for activity in activities:
-        activity_list.append(activity.name)
+        activity_list.append(activity.name)    
+    
+    return activity_list
+    
+def get_current_tags():
+    tags = models.Tag.all()
+    tag_list = []
 
-    json = simplejson.dumps(activity_list)
-    return HttpResponse(json, mimetype='application/javascript')
+    for tag in tags:
+        tag_list.append(tag.key())    
+
+    return tag_list
