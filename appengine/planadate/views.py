@@ -119,8 +119,8 @@ def place_edit(request):
 
 @admin_required
 def place_add(request):
-    current_activities = get_current_activities()
-    current_tags = get_current_tags()
+    current_activities = [activity.name for activity in models.Activity.all()]
+    current_tags = [tag.key().name() for tag in models.Tag.all()]
     
     response_params = {}
     response_params['places'] = models.Place.all()
@@ -248,12 +248,3 @@ def get_activities_json(request):
 def floatToSeconds(floatTime):
     seconds = int(floatTime * 3600)
     return seconds
-
-def get_current_tags():
-    tags = models.Tag.all()
-    tag_list = []
-
-    for tag in tags:
-        tag_list.append(tag.key().name())    
-
-    return tag_list
