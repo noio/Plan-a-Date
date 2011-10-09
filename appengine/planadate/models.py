@@ -50,13 +50,14 @@ class Activity(db.Model):
 class Place(db.Model):
     location   = db.GeoPtProperty()
     tags       = db.StringListProperty()
+    name       = db.StringProperty(required=True)
     uris       = db.StringListProperty()
     activities = db.ListProperty(item_type=db.Key)
     
 class BusinessHours(db.Model):
     day   = db.IntegerProperty(choices=set([0,1,2,3,4,5,6]))
-    open  = db.TimeProperty()
-    close = db.TimeProperty()
+    opened  = db.TimeProperty()
+    closed = db.TimeProperty()
     date  = db.DateProperty()
     place = db.ReferenceProperty(Place, collection_name='business_hours')
     

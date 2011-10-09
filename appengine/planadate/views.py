@@ -2,12 +2,14 @@
 
 # Python imports
 import logging
+import urllib
 
 # AppEngine imports
 from google.appengine.ext import db
 from google.appengine.ext.db import Key
 from google.appengine.api import users
 from google.appengine.api import memcache
+from google.appengine.api import urlfetch
 
 # Django imports
 from django import forms
@@ -30,6 +32,10 @@ from models import Activity
 import models
 
 ### Constants ###
+SEARCH_RADIUS_PLACES = 10000
+API_KEY = "AIzaSyCDVMO3-PEsnU22lgvjp0ltnqMwW4R8TE4"
+LOCATION = {"lat" : 52.37021570, "lng" : 4.895167900000001}
+
 
 ### Decorators for Request Handlers ###
 def admin_required(func):
@@ -58,6 +64,7 @@ def activities(request):
 
 @admin_required
 def add_place(request):
+<<<<<<< HEAD
 	if 'search_term' in request.POST:
 		pass
 	else:
@@ -82,5 +89,27 @@ def add_sample_data(request):
     a.put()
     return render_to_response('front.html',{})
 
+=======
+    render_params = {}
+    render_params['places'] = models.Place.all()
+    
+    if 'search_term' in request.POST and request.POST['search_term'] != '':
+        params = urllib.urlencode({'radius': SEARCH_RADIUS_PLACES, 'name': request.POST['search_term'], 'key': API_KEY, 'sensor': 'false'})
+        url = "https://maps.googleapis.com/maps/api/place/search/json?location=%s&%s" % (str(LOCATION['lat']) + ',' + str(LOCATION['lng']), params)
+        f = urlfetch.fetch(url)
+        results = simplejson.loads(f.content)
+        render_params['results'] = results['results']
+
+    else:
+        ref = request.POST['picked_place']
+        params = urllib.urlencode({'reference': ref, 'key': API_KEY, 'sensor': 'false'})        
+        url = "https://maps.googleapis.com/maps/api/place/details/json?%s" % params
+        f = urlfetch.fetch(url)
+        results = simplejson.loads(f.content)
+        place = models.Place(name=results["result"]["name"], uris=[ref], tags=results["result"]["types"])
+        place.put()
+    
+    return render_to_response('add_place.html', render_params)
+>>>>>>> Functionaliteit om places toe te voegen
 ### Helper functions ###
 
