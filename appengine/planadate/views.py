@@ -112,8 +112,12 @@ def place_add(request):
                              uris=[url])
         tag_ids = []
         for tag in results["types"]:
-            t = models.Tag(key_name=tag)
-            t.put()
+            # Check if the tag already exists
+            t = models.Tag.get_by_key_name(tag)
+            # If not add it
+            if not t:
+                t = models.Tag(key_name=tag)
+                t.put()
             tag_ids.append(t.key())
         place.tags = tag_ids
         place.put()
@@ -129,9 +133,26 @@ def activity_add(request):
 
     # If the form is submitted    
     if request.method == "POST":
-        #tags = ['moet nog']
         
-        activity = Activity(name=request.POST['name'],price=int(request.POST['price']),duration_min=datetime.timedelta(seconds=int(request.POST['duration_min'])),duration_max=datetime.timedelta(seconds=int(request.POST['duration_max'])))
+        tags = request.POST['tags'].split(',')
+
+        tag_ids = []
+        for tag in tags:
+            # Check if the tag already exists
+            t = models.Tag.get_by_key_name(tag)
+            # If not add it
+            if not t:
+                t = models.Tag(key_name=tag)
+                t.put()
+            tag_ids.append(t.key())
+
+        name = request.POST['name']
+        price = int(request.POST['price'])
+
+        duration_min = datetime.timedelta(seconds=floatToSeconds(float(request.POST['duration_min'])))
+        duration_max = datetime.timedelta(seconds=floatToSeconds(float(request.POST['duration_max'])))
+
+        activity = Activity(name=name,price=price,duration_min=duration_min,duration_max=duration_max,tags=tag_ids)
         activity.put()
 #        except:
 #            print 'Can\'t make activity'
@@ -140,8 +161,9 @@ def activity_add(request):
     return render_to_response('activity-add.html', response_params)
 
 @admin_required
-def activity_edit(request):
-    pass
+def activity_edit(request, activity_id):
+    response_params = {}
+    return render_to_response('activity-add.html', response_params)
 
 
 def get_activities(request):
@@ -153,3 +175,7 @@ def get_activities(request):
 
     json = simplejson.dumps(activity_list)
     return HttpResponse(json, mimetype='application/javascript')
+
+def floatToSeconds(floatTime):
+    seconds = int(floatTime * 3600)
+    return seconds
