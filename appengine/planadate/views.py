@@ -11,6 +11,8 @@ from google.appengine.api import users
 from google.appengine.api import memcache
 from google.appengine.api import urlfetch
 
+
+
 # Django imports
 from django import forms
 from django.shortcuts import render_to_response
@@ -93,13 +95,13 @@ def add_place(request):
         results = simplejson.loads(f.content)
         render_params['results'] = results['results']
 
-    else:
+    elif 'picked_place' in request.POST:
         ref = request.POST['picked_place']
         params = urllib.urlencode({'reference': ref, 'key': API_KEY, 'sensor': 'false'})        
         url = "https://maps.googleapis.com/maps/api/place/details/json?%s" % params
         f = urlfetch.fetch(url)
         results = simplejson.loads(f.content)
-        place = models.Place(name=results["result"]["name"], uris=[ref], tags=results["result"]["types"])
+        place = models.Place(name=results["result"]["name"], location=db.GeoPt(results["result"]["geometry"]["location"]["lat"], results["result"]["geometry"]["location"]["lng"]), uris=[ref], tags=results["result"]["types"])
         place.put()
     
     return render_to_response('add_place.html', render_params)
