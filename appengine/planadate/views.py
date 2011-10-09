@@ -122,10 +122,12 @@ def place_add(request):
     response_params = {}
     response_params['places'] = models.Place.all()
     current_tags = get_current_tags()
+
     response_params['current_tags'] = current_tags
     
     current_activities = get_current_activities()
     response_params['current_activities'] = current_activities
+
     
     #Searching
     if 'search' in request.POST:
@@ -225,8 +227,7 @@ def get_current_activities():
     for activity in activities:
         activity_list.append(activity.name)    
 
-    json = simplejson.dumps(activity_list)
-    return HttpResponse(json, mimetype='application/javascript')
+    return activity_list
 
 
 def floatToSeconds(floatTime):
