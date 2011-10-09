@@ -25,10 +25,11 @@ from django.template import Context, Template, RequestContext
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.utils import simplejson
-from models import Activity
+from models import Activity, ActivityForm
 #from django.core.exceptions import ValidationError
 
 # Library imports
+import datetime
 
 # Local Imports
 import models
@@ -106,13 +107,28 @@ def place_add(request):
         place = models.Place(name=results["result"]["name"], location=db.GeoPt(results["result"]["geometry"]["location"]["lat"], results["result"]["geometry"]["location"]["lng"]), uris=[ref], tags=results["result"]["types"])
         place.put()
     
-    return render_to_response('add-place.html', response_params)
+    return render_to_response('place-add.html', response_params)
 ### Helper functions ###
 
 @admin_required
 def activity_add(request):
     response_params = {}
-    return render_to_response('add-activity.html', response_params)
+    response_params['activities'] = models.Activity.all()
+    response_params['activity_form'] = ActivityForm()
+
+    # If the form is submitted    
+    if request.method == "POST":
+        form = ActivityForm(request.POST)
+
+        if form.is_valid():
+            activity = form.save(commit=False)            
+            activity.duration_min = datetime.timedelta(seconds=int(activity.duration_min))
+            activity.duration_max = datetime.timedelta(seconds=int(activity.duration_max))
+            activity.put()
+        else:
+            print 'KAPOT'
+
+    return render_to_response('activity-add.html', response_params)
 
 @admin_required
 def activity_edit(request):
