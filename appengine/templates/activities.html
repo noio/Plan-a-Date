@@ -1,10 +1,43 @@
 {% extends "base.html" %}
+{% load template_filters %}
 
 {% block content %}
 
-<ul>
-{% for activity in activities %}
-  <li>{{activity.name}}</li>
-{% endfor %}
-</ul>
+<h3>Activities so far</h3>
+
+<form action="{% url planadate.views.activities %}" method="POST">
+    <table>
+        <tr>
+        <td>Activiteit</td>
+        <td>Prijs</td>
+        <td>Tags</td>
+        <td>Minimum duration</td>
+        <td>Maximum duration</td>
+        </tr>
+    {% for activity in activities %}
+        <tr>
+        <td>{{activity.name}}</td>
+        <td>{{activity.price}}</td>
+        <td>
+          {% for tag in activity.tags %}
+                {{tag.name}},
+          {% endfor %}
+        </td>
+         <td>{{activity.duration_min}}</td>
+         <td>{{activity.duration_max}}</td>
+         <td><a href="{% url planadate.views.activity_edit activity.key.id %}">Edit</a></td>
+        </tr>
+    {% endfor %}
+
+    <tr>
+        <td><input type="text" name="name" value=""/></td>
+        <td><input type="text" name="price" value=""/></td>
+        <td><input type="text" name="tags" value=""/></td>
+         <td><input type="text" name="duration_min" value=""/></td>
+         <td><input type="text" name="duration_max" value=""/></td>
+         <td><input type="submit" value='Save'></td>
+    </tr>
+    </table>
+</form>
+
 {% endblock content %}

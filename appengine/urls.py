@@ -8,10 +8,9 @@ urlpatterns = patterns('',
     (r"^$", "planadate.views.frontpage"),
     (r"^plan/$", "planadate.views.make_plan"),
     
-    (r"^activities/$", "planadate.views.activities"),
-    (r"^activities/add/$", "planadate.views.activity_add"),
+    (r"^activities/$", "planadate.views.activities"),    
     (r"^activities/(\d+)/$", "planadate.views.activity_edit"),
-    (r"^activities/get-all/$", "planadate.views.get_activities"),
+    (r"^activities/get-all/$", "planadate.views.get_activities_json"),
 
     
     (r'^places/$', "planadate.views.places"),

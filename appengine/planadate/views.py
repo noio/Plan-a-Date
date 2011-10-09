@@ -61,10 +61,6 @@ def frontpage(request):
     """ Renders the frontpage/redirects to mobile front page
     """
     return render_to_response('front.html')
-    
-def activities(request):
-    act = models.Activity.all()
-    return render_to_response('activities.html',{'activities':act})
 
 def places(request):
     places = models.Place.all()
@@ -94,8 +90,7 @@ def place_add(request):
     response_params['places'] = models.Place.all()
     response_params['current_tags'] = get_current_tags()
     response_params['current_activities'] = get_current_activities() 
-    
-    print get_current_tags()
+        
     
     if 'search_term' in request.POST and request.POST['search_term'] != '':
         params = urllib.urlencode({'radius': SEARCH_RADIUS_PLACES, 'name': request.POST['search_term'], 'key': API_KEY, 'sensor': 'false'})
@@ -133,25 +128,27 @@ def place_add(request):
 ### Helper functions ###
 
 @admin_required
-def activity_add(request):
+def activities(request):
+    # Function to get all activities and handle POST request to add or edit
+    # an activity
     response_params = {}
     response_params['activities'] = models.Activity.all()
     response_params['activity_form'] = ActivityForm()
 
     # If the form is submitted    
-    if request.method == "POST":
-        
+    if request.method == "POST":        
         tags = request.POST['tags'].split(',')
 
         tag_ids = []
         for tag in tags:
-            # Check if the tag already exists
-            t = models.Tag.get_by_key_name(tag)
-            # If not add it
-            if not t:
-                t = models.Tag(key_name=tag)
-                t.put()
-            tag_ids.append(t.key())
+            if tag.strip() != '':
+                # Check if the tag already exists
+                t = models.Tag.get_by_key_name(tag)
+                # If not add it
+                if not t:
+                    t = models.Tag(key_name=tag)
+                    t.put()
+                tag_ids.append(t.key())
 
         name = request.POST['name']
         price = int(request.POST['price'])
@@ -159,27 +156,25 @@ def activity_add(request):
         duration_min = datetime.timedelta(seconds=floatToSeconds(float(request.POST['duration_min'])))
         duration_max = datetime.timedelta(seconds=floatToSeconds(float(request.POST['duration_max'])))
 
-        activity = Activity(name=name,price=price,duration_min=duration_min,duration_max=duration_max,tags=tag_ids)
-        activity.put()
-#        except:
-#            print 'Can\'t make activity'
+        # If we got an activity id from the request, we do an update instead of an add
+        if 'activity-id' in request.POST:
+            logging.info('edit an existing activity')
+            activity = Activity.get_by_id(int(request.POST['activity-id']))
+        else:
+            activity = Activity(name=name,price=price,duration_min=duration_min,duration_max=duration_max,tags=tag_ids)
+            activity.put()
 
-        
-    return render_to_response('activity-add.html', response_params)
+    return render_to_response('activities.html', response_params)
 
 @admin_required
 def activity_edit(request, activity_id):
     response_params = {}
-    return render_to_response('activity-add.html', response_params)
+    response_params['activity'] = Activity.get_by_id(int(activity_id))
+    return render_to_response('activity-edit.html', response_params)
 
 
-def get_activities(request):
-    activity_list = get_current_activities()
-    json = simplejson.dumps(activity_list)
-    return HttpResponse(json, mimetype='application/javascript')
-    
 # Helper functions
-def get_current_activities():
+def get_activities_json(request):
     activities = models.Activity.all()
     activity_list = []
 
