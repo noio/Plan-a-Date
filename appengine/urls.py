@@ -9,11 +9,11 @@ urlpatterns = patterns('',
     (r"^plan/$", "planadate.views.make_plan"),
     
     (r"^activities/$", "planadate.views.activities"),
-    (r"^activities/add/", "planadate.views.activity_add"),
-    (r"^activities/(\d+)/", "planadate.views.activity_edit"),
+    (r"^activities/add/$", "planadate.views.activity_add"),
+    (r"^activities/(\d+)/$", "planadate.views.activity_edit"),
     
-    (r'^places/', "planadate.views.places"),
+    (r'^places/$', "planadate.views.places"),
     (r'^places/add/$', "planadate.views.place_add"),
-    (r'^places/(\d+)/', "planadate.views.place_edit"),
+    (r'^places/(\d+)/$', "planadate.views.place_edit"),
     
 )

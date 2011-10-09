@@ -64,6 +64,10 @@ def activities(request):
     act = models.Activity.all()
     return render_to_response('activities.html',{'activities':act})
 
+def places(request):
+    places = models.Place.all()
+    return render_to_response('activities.html',{'places':places})
+
 def make_plan(request):
     response_params = {}
     
@@ -78,7 +82,7 @@ def make_plan(request):
     return render_to_response('plan.html',response_params)
 
 @admin_required
-def place_view(request):
+def place_edit(request):
     pass
 
 @admin_required
@@ -102,7 +106,7 @@ def place_add(request):
         place = models.Place(name=results["result"]["name"], location=db.GeoPt(results["result"]["geometry"]["location"]["lat"], results["result"]["geometry"]["location"]["lng"]), uris=[ref], tags=results["result"]["types"])
         place.put()
     
-    return render_to_response('add_place.html', response_params)
+    return render_to_response('add-place.html', response_params)
 ### Helper functions ###
 
 @admin_required
@@ -114,6 +118,3 @@ def activity_add(request):
 def activity_edit(request):
     pass
 
-@admin_required
-def activity_view(reqeust):
-    pass
